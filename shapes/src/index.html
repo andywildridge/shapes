@@ -1,1 +1,22 @@
+<style>
+    #stage{
+        position: relative;
+        width: 500px;
+        height: 500px;
+    }
+    #stage svg{
+        position: absolute;
+        pointer-events: none;
+    }
+    #stage svg rect{
+        pointer-events: initial;
+    }
+</style>
 <h1>shapes puzzler</h1>
+<div id="stage"></div>  
+<script type="module">
+    import { Stage } from './components/Stage.js';
+    const stage = new Stage(document.getElementById('stage'));
+    stage.addShape('square', 'sq');
+    stage.addShape('bigL', 'bl');
+</script>
