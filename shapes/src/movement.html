@@ -1,0 +1,269 @@
+<html>
+	<head>
+		<link rel="manifest" href="/manifest.json?1" />
+		<link rel="prefetch" href="/serviceWorker.js?1" as="script" />
+		<meta
+			name="apple-mobile-web-app-status-bar-style"
+			content="black-translucent"
+		/>
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+		/>
+
+		<style>
+			html,
+			body {
+				height: 100%;
+				overflow: hidden;
+				-webkit-overflow-scrolling: none;
+			}
+			body {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background: #ccc;
+				color: green;
+				overflow: hidden;
+			}
+			        html {
+            -webkit-text-size-adjust: none;
+            touch-action: none; /*prevent user scaling*/
+        }
+		</style>
+	</head>
+	<body>
+		<style>
+	#stage{
+		width: 100%;
+		height: 100%;
+		border: 1px solid #eee;
+		position: relative;
+		-webkit-text-size-adjust: none;
+            touch-action: none; /*prevent user scaling*/
+	}
+	#shape{
+		width: 250px;
+		height: 250px;
+		border: 1px solid #333;
+		position: absolute;
+	}
+	* {
+		-webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+</style>
+<script src="point.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/web-animations/2.3.2/web-animations.min.js" integrity="sha512-oAY57i8MXmaOP7pAylNLnULAM4QLV3uGnvnXVY4zF229/zFzTvG2/5YIgH8iN8oZR2hnbkiDPd4JCJGaH4oG6g==" crossorigin="anonymous"></script>
+<div id="stage">
+	<div id="shape"></div>
+</div>
+<div id="status"></div>
+<script>
+
+function position(el, x, y, r) {
+	el.animate([
+			{
+				transform: `translate(${x}px, ${y}px) rotate(${r}deg)`
+			},
+			{
+				transform: `translate(${x}px, ${y}px) rotate(${r}deg)`
+			}
+		], {
+			duration: 0,
+			fill: 'forwards'
+	});
+}
+const status = document.getElementById('status');
+function dragZone(el){
+	let shapes = new Map();
+	shapes.set(document.getElementById('shape'), {
+		x: 0,
+		y: 0,
+		rotate: 0
+	});
+	const handleInput = (e) => {
+		if(e.type === 'dragStart' && shapes.get(e.target)){
+			this.target = e.target;
+			this.startPos = shapes.get(e.target);
+		}
+		if(e.type === 'dragEnd'){
+			this.target = undefined;
+		}
+		if(e.type === 'dragMove' && shapes.get(this.target)){
+			let prevPos = shapes.get(this.target);
+			let pos = {
+				x: this.startPos.x + e.offset.x,
+				y: this.startPos.y + e.offset.y,
+				rotate: this.startPos.rotate + e.rotate
+			}
+			shapes.set(this.target, pos);
+			position(this.target, pos.x  , pos.y, pos.rotate);
+		}
+		if(this.target){
+			//status.innerHTML = +new Date()
+		}
+	}
+	this.userInputHandler = new userInputHandler(el, handleInput);
+}
+
+function userInputHandler(el, eventHandler){
+	this.container = el.getBoundingClientRect();
+	this.pos = {
+		x: 0,
+		y: 0,
+		x2: 0,
+		y2: 0,
+		rotateStart: 0,
+		angleChange: 0,
+		prev: {
+			x: 0,
+			y: 0				
+		},
+		start: {
+			x: 0,
+			y: 0
+		}
+	};
+	el.addEventListener('mousedown', e => {
+		e.preventDefault();
+		this.target = e.target;
+		this.pos.x = (e.clientX - this.container.left);
+		this.pos.y = (e.clientY - this.container.top);
+		this.pos.start.x = this.pos.x;
+		this.pos.start.y = this.pos.y;
+		this.pos.prev.x = this.pos.x;
+		this.pos.prev.y = this.pos.y;
+		eventHandler({
+			type: 'dragStart',
+			target: this.target
+		});
+	});
+	el.addEventListener("touchstart", e => {
+		e.preventDefault();
+		console.log(e.touches);
+		this.target = e.touches[0].target;
+		this.pos.x = (e.touches[0].clientX - this.container.left);
+		this.pos.y = (e.touches[0].clientY - this.container.top);
+		if(e.touches.length>1 && (e.touches[1].target === e.touches[0].target)){
+			this.pos.x2 = (e.touches[1].clientX - this.container.left);
+			this.pos.y2 = e.touches[1].clientY - this.container.top;
+			var dx = this.pos.x2 - this.pos.x;
+			var dy = this.pos.y2 - this.pos.y;
+			this.pos.rotateStart = Math.atan2(dy, dx);
+			//status.innerHTML = 'rot:' + this.pos.rotateStart;
+		}else{
+			this.pos.x2 = undefined;
+		}
+		this.pos.start.x = this.pos.x;
+		this.pos.start.y = this.pos.y;
+		this.pos.prev.x = this.pos.x;
+		this.pos.prev.y = this.pos.y;
+		eventHandler({
+			type: 'dragStart',
+			target: this.target,
+			target2: this.target2
+		});
+	}, false);
+	el.addEventListener('mousemove', e => {
+		e.preventDefault();
+		this.pos.x = (e.clientX - this.container.left);
+		this.pos.y = (e.clientY - this.container.top);
+	});
+	el.addEventListener("touchmove", e => {
+		e.preventDefault();
+		//status.innerHTML = +new Date();
+		//e.preventDefault();
+		this.pos.x = (e.touches[0].clientX - this.container.left);
+		this.pos.y = (e.touches[0].clientY - this.container.top);
+		if(this.pos.x2 && e.touches[1]){
+			this.pos.x2 = (e.touches[1].clientX - this.container.left);
+			this.pos.y2 = e.touches[1].clientY - this.container.top;
+			var dx = this.pos.x2 - this.pos.x;
+			var dy = this.pos.y2 - this.pos.y;
+			this.pos.rotateNow = Math.atan2(dy, dx);
+			let angleChange = Math.atan2(dy, dx) - this.pos.rotateStart;
+			this.pos.angleChange = ((angleChange * 180) / Math.PI);
+			//status.innerHTML = 'rot:' + ((angleChange * 180) / Math.PI);
+		}
+	});
+	el.addEventListener('mouseup', e => {
+		this.target = undefined;
+		eventHandler({
+			type: 'dragEnd'
+		});				
+	});
+	el.addEventListener("touchend", e => {
+		e.preventDefault();
+		this.target = undefined;
+		eventHandler({
+			type: 'dragEnd'
+		});		
+	});
+	/*	function pointerEvent(e){
+		//console.log(e);
+		status.innerHTML = +new Date() + ', ' + e.clientX;
+	}
+	  el.addEventListener("pointerdown", pointerEvent, false);
+	  el.addEventListener("pointerup", pointerEvent, false);
+	  el.addEventListener("pointercancel", pointerEvent, false);
+	  el.addEventListener("pointermove", pointerEvent, false);*/
+	const hasMoved = () => {
+		if(this.pos.x!==this.pos.prev.x || this.pos.y!==this.pos.prev.y){
+			this.pos.prev.x = this.pos.x;
+			this.pos.prev.y = this.pos.y;
+			return true;
+		}
+		return false;
+	}
+	const animationFrame = () => {
+		if(this.target && hasMoved()){
+			eventHandler({
+				type: 'dragMove',
+				offset: {
+					x: this.pos.x - this.pos.start.x,
+					y: this.pos.y - this.pos.start.y
+				},
+				rotate: this.pos.angleChange
+			});
+		}
+		window.requestAnimationFrame(() => animationFrame());
+	}
+	window.requestAnimationFrame(() => animationFrame());
+}
+
+const stage = new dragZone(document.getElementById('stage'));
+</script>
+		<script>
+			document.addEventListener("gesturestart", function (e) {
+				e.preventDefault();
+				// special hack to prevent zoom-to-tabs gesture in safari
+				document.body.style.zoom = 1;
+			});
+
+			document.addEventListener("gesturechange", function (e) {
+				e.preventDefault();
+				// special hack to prevent zoom-to-tabs gesture in safari
+				document.body.style.zoom = 1;
+			});
+
+			document.addEventListener("gestureend", function (e) {
+				e.preventDefault();
+				// special hack to prevent zoom-to-tabs gesture in safari
+				document.body.style.zoom = 1;
+			});
+			document.addEventListener('touchmove', function (event) {
+  if (event.scale !== 1) { event.preventDefault(); }
+}, { passive: false });
+
+		</script>
+	</body>
+</html>
