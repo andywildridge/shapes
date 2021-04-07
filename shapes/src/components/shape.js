@@ -1,5 +1,6 @@
-import shapeDefinitions from './shapeDefinitions.js';
-import getShapeImage from './getShapeImage.js';
+import shapeDefinitions from "./shapeDefinitions.js";
+import getShapeImage from "./getShapeImage.js";
+import positionElement from "./positionElement.js";
 
 export class Shape {
     constructor(type, name) {
@@ -25,6 +26,12 @@ export class Shape {
             rotate,
             flip,
         };
+        positionElement(
+            this._el,
+            this._position.x,
+            this._position.y,
+            this._position.rotate
+        );
     }
 
     get img() {
@@ -32,7 +39,7 @@ export class Shape {
     }
 
     get name() {
-        return this._name;;
+        return this._name;
     }
 
     setEl(el) {

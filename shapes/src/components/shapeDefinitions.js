@@ -10,6 +10,11 @@ const shapeDefinitions = {
     littleL: [
         [1,0],
         [1,1]
+    ],
+    cross: [
+        [0,1,0],
+        [1,1,1],
+        [0,1,0]
     ]
 }
 
