@@ -3,15 +3,23 @@ import getShapeImage from "./getShapeImage.js";
 import positionElement from "./positionElement.js";
 
 export class Shape {
-    constructor(type, name) {
+    constructor(type) {
         this._defn = shapeDefinitions[type];
         this._img = getShapeImage(this._defn);
         this._position = undefined;
-        this._name = name;
+        this._width = this._defn[0].length;
+        this._height = this._defn.length;
     }
 
     get position() {
         return this._position;
+    }
+
+    get dimensions(){
+        return {
+            width: this._width,
+            height: this._height
+        }
     }
 
     set position({
@@ -38,12 +46,7 @@ export class Shape {
         return this._img;
     }
 
-    get name() {
-        return this._name;
-    }
-
     setEl(el) {
         this._el = el;
-        console.log(el);
     }
 }
